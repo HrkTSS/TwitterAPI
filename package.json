@@ -19,7 +19,9 @@
   "homepage": "https://github.com/HrkTSS/TwitterAPI#readme",
   "dependencies": {
     "express": "^4.17.1",
+    "express-session": "^1.17.2",
     "knex": "^0.95.14",
+    "morgan": "^1.10.0",
     "sqlite3": "^5.0.2"
   }
 }
