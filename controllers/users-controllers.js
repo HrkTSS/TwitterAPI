@@ -3,7 +3,7 @@ const router = express.Router();
 const { isLoggedIn } = require("../middleware/auth");
 const usersServices = require("../services/users-services");
 
-router.post("/register", async (req, res) => {
+router.post("/auth/register", async (req, res) => {
   let user = req.body;
   try {
     const newUser = await usersServices.createUser(req.body);
@@ -30,7 +30,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/auth/login", async (req, res) => {
   const user = await usersServices.loginUser(
     req.body.user_name,
     req.body.password
@@ -44,7 +44,7 @@ router.post("/login", async (req, res) => {
   res.status(401).send({ code: 400, message: "Invalid username or password" });
 });
 
-router.get("/me", isLoggedIn, async (req, res) => {
+router.get("/users/me", isLoggedIn, async (req, res) => {
   const user = await usersServices.getByUserId(req.user.id);
   if (user) {
     res.status(200).send(user);
@@ -54,9 +54,19 @@ router.get("/me", isLoggedIn, async (req, res) => {
   res.status(400).send({ code: 400, message: "user not found" });
 });
 
-router.put("/me", isLoggedIn, async (req, res) => {
+router.get("/users/:id", isLoggedIn, async (req, res) => {
+  const user = await usersServices.getByUserId(Number(req.params.id));
+  if (!user) {
+    res.status(404).send({ code: 404, message: "User not found" });
+    return;
+  }
+
+  res.send(user);
+});
+
+router.put("/users/me", isLoggedIn, async (req, res) => {
+  const user = req.body;
   try {
-    const user = req.body;
     let updateData = {};
     if (user.name) updateData.name = user.name;
     if (user.mail_id) updateData.mail_id = user.mail_id;
@@ -86,8 +96,18 @@ router.put("/me", isLoggedIn, async (req, res) => {
   }
 });
 
-router.delete("/me", async (req, res) => {
-  
+router.delete("/users/me", isLoggedIn, async (req, res) => {
+  const deleted = await usersServices.deleteUser(req.user.id);
+  if (deleted) {
+    req.session.user = null;
+    req.user = null;
+    res
+      .status(202)
+      .send({ code: 202, message: "Account deleted successfully" });
+    return;
+  }
+
+  res.status(500).send("Internal sever error");
 });
 
 module.exports = router;

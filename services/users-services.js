@@ -27,4 +27,8 @@ async function updateByUserId(id, user) {
   return await db("users").update(user).where("id", id);
 }
 
-module.exports = { createUser, loginUser, getByUserId,updateByUserId };
+async function deleteUser(id) {
+  return await db("users").del().where("id", id);
+}
+
+module.exports = { createUser, loginUser, getByUserId, updateByUserId,deleteUser };

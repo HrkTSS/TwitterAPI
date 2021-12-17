@@ -3,6 +3,7 @@ const morgan = require("morgan");
 const session = require("express-session");
 
 const usersRouter = require("./controllers/users-controllers");
+const followsRouter = require("./controllers/follows-controllers");
 
 const app = express();
 
@@ -28,7 +29,7 @@ app.use(async function (req, res, next) {
 
 app.use(express.json());
 
-app.use("/api/v1/auth", usersRouter);
 app.use("/api/v1", usersRouter);
+app.use("/api/v1/users", followsRouter);
 
 app.listen(3000);
