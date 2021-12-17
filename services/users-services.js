@@ -16,4 +16,15 @@ async function loginUser(user_name, password) {
   return user;
 }
 
-module.exports = { createUser, loginUser };
+async function getByUserId(id) {
+  return await db("users")
+    .select(["name", "user_name", "mail_id", "dob"])
+    .where("id", id)
+    .first();
+}
+
+async function updateByUserId(id, user) {
+  return await db("users").update(user).where("id", id);
+}
+
+module.exports = { createUser, loginUser, getByUserId,updateByUserId };

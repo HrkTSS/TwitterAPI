@@ -29,5 +29,6 @@ app.use(async function (req, res, next) {
 app.use(express.json());
 
 app.use("/api/v1/auth", usersRouter);
+app.use("/api/v1", usersRouter);
 
 app.listen(3000);
