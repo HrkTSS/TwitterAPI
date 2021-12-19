@@ -7,7 +7,8 @@ async function isLoggedIn(req, res, next) {
     return;
   }
 
-  res.status(401).send({ code: 401, message: "User authentication failed" });
+  res.status(401).send({ code: 401, message: "User authentication failed, kindly login to continue..." });
 }
+
 
 module.exports = { isLoggedIn };
