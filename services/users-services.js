@@ -31,4 +31,15 @@ async function deleteUser(id) {
   return await db("users").del().where("id", id);
 }
 
-module.exports = { createUser, loginUser, getByUserId, updateByUserId,deleteUser };
+async function getAllUsers() {
+  return await db("users").select(["id","name", "user_name", "mail_id", "dob"]);
+}
+
+module.exports = {
+  createUser,
+  loginUser,
+  getByUserId,
+  updateByUserId,
+  deleteUser,
+  getAllUsers,
+};

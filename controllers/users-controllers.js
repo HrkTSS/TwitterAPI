@@ -54,6 +54,11 @@ router.get("/users/me", isLoggedIn, async (req, res) => {
   res.status(400).send({ code: 400, message: "user not found" });
 });
 
+router.get("/users", isLoggedIn, async (req, res) => {
+  const users = await usersServices.getAllUsers();
+  res.status(200).send(users);
+});
+
 router.get("/users/:id", isLoggedIn, async (req, res) => {
   const user = await usersServices.getByUserId(Number(req.params.id));
   if (!user) {
