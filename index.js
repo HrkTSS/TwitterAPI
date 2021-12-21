@@ -4,6 +4,8 @@ const session = require("express-session");
 
 const usersRouter = require("./controllers/users-controllers");
 const followsRouter = require("./controllers/follows-controllers");
+const tweetsRouter = require("./controllers/tweets-controllers");
+const likesRouter = require("./controllers/likes-controllers");
 
 const app = express();
 
@@ -31,6 +33,7 @@ app.use(express.json());
 
 app.use("/api/v1/users", followsRouter);
 app.use("/api/v1", usersRouter);
-
+app.use("/api/v1/tweets", tweetsRouter);
+app.use("/api/v1/likes",likesRouter);
 
 app.listen(3000);
