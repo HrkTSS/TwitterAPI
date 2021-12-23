@@ -9,6 +9,7 @@ exports.up = function (knex) {
       .notNullable()
       .references("users.id")
       .onDelete("CASCADE");
+    t.unique(["tweet_id", "user_id"]);
     t.timestamps();
   });
 };

@@ -1,12 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const { isLoggedIn } = require("../middleware/auth");
+const { jwtAuth, isLoggedIn } = require("../middleware/auth");
 const usersServices = require("../services/users-services");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 router.post("/auth/register", async (req, res) => {
   let user = req.body;
   try {
-    const newUser = await usersServices.createUser(req.body);
+    user.password = bcrypt.hashSync(user.password, 10);
+    const newUser = await usersServices.createUser(user);
+    delete newUser.password;
     res.status(201).send(newUser);
   } catch (err) {
     if (err.errno === 19) {
@@ -31,20 +35,35 @@ router.post("/auth/register", async (req, res) => {
 });
 
 router.post("/auth/login", async (req, res) => {
+  if (
+    !req.body.user_name ||
+    !req.body.password ||
+    req.body.user_name === "" ||
+    req.body.password === ""
+  ) {
+    res.status(401).send({
+      code: 401,
+      message: "Username, password is mandatory for login",
+    });
+    return;
+  }
   const user = await usersServices.loginUser(
     req.body.user_name,
     req.body.password
   );
   if (user) {
+    const token = jwt.sign({ userId: user.id }, "OJHHkhTUCcWGL8iD3goaxw==", {
+      expiresIn: "1d",
+    });
     req.session.user = user;
-    res.send({ message: "Logged in successfully" });
+    res.send({ message: "Logged in successfully", token });
     return;
   }
 
   res.status(401).send({ code: 400, message: "Invalid username or password" });
 });
 
-router.get("/users/me", isLoggedIn, async (req, res) => {
+router.get("/users/me", jwtAuth, isLoggedIn, async (req, res) => {
   const user = await usersServices.getByUserId(req.user.id);
   if (user) {
     res.status(200).send(user);
@@ -54,12 +73,12 @@ router.get("/users/me", isLoggedIn, async (req, res) => {
   res.status(400).send({ code: 400, message: "user not found" });
 });
 
-router.get("/users", isLoggedIn, async (req, res) => {
+router.get("/users", jwtAuth, isLoggedIn, async (req, res) => {
   const users = await usersServices.getAllUsers();
   res.status(200).send(users);
 });
 
-router.get("/users/:id", isLoggedIn, async (req, res) => {
+router.get("/users/:id", jwtAuth, isLoggedIn, async (req, res) => {
   const user = await usersServices.getByUserId(Number(req.params.id));
   if (!user) {
     res.status(404).send({ code: 404, message: "User not found" });
@@ -69,7 +88,7 @@ router.get("/users/:id", isLoggedIn, async (req, res) => {
   res.send(user);
 });
 
-router.put("/users/me", isLoggedIn, async (req, res) => {
+router.put("/users/me", jwtAuth, isLoggedIn, async (req, res) => {
   const user = req.body;
   try {
     let updateData = {};
@@ -101,7 +120,7 @@ router.put("/users/me", isLoggedIn, async (req, res) => {
   }
 });
 
-router.delete("/users/me", isLoggedIn, async (req, res) => {
+router.delete("/users/me", jwtAuth, isLoggedIn, async (req, res) => {
   const deleted = await usersServices.deleteUser(req.user.id);
   if (deleted) {
     req.session.user = null;

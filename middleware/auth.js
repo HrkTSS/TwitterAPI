@@ -1,4 +1,32 @@
 const db = require("../db");
+const jwt = require("jsonwebtoken");
+
+async function jwtAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, "OJHHkhTUCcWGL8iD3goaxw==");
+        const user = await db("users")
+          .select()
+          .where("users.id", decoded.userId);
+
+        if (user) {
+          req.user = user;
+          next();
+          return;
+        }
+      } catch (err) {
+        res
+          .status(401)
+          .send({ code: 401, message: "Access denied : Invalid token" });
+        return;
+      }
+    }
+  }
+  next();
+}
 
 async function isLoggedIn(req, res, next) {
   req.user = req.session.user;
@@ -29,4 +57,4 @@ async function isOwnerOrFollower(req, res, next) {
   next();
 }
 
-module.exports = { isLoggedIn, isOwnerOrFollower };
+module.exports = { jwtAuth, isLoggedIn, isOwnerOrFollower };

@@ -12,16 +12,19 @@ async function createTweet(tweet) {
 
 async function getAllTweets(id) {
   return await db("tweets")
-    .select(["id", "message", "created_at"])
-    .where("user_id", id);
+    .select(["id", "message", "created_at", "parent_id"])
+    .where({ user_id: id, parent_id: null }); 
 }
 
 async function getTweetById(id) {
-  return await db("tweets").select(["message", "created_at"]).where("id", id);
+  return await db("tweets")
+    .select(["id", "message", "created_at"])
+    .where("id", id)
+    .first();
 }
 
 async function deleteTweet(id, userId) {
   return await db("tweets").del().where({ id: id, user_id: userId });
 }
 
-module.exports = { createTweet, getAllTweets, getTweetById,deleteTweet };
+module.exports = { createTweet, getAllTweets, getTweetById, deleteTweet };

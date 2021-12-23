@@ -7,6 +7,11 @@ exports.up = function (knex) {
       .references("users.id")
       .onDelete("CASCADE");
     t.string("message").notNullable();
+    t.integer("parent_id")
+      .unsigned()
+      .defaultTo(null)
+      .references("tweets.id")
+      .onDelete("CASCADE");
     t.timestamps();
   });
 };

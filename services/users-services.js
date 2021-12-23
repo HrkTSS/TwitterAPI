@@ -1,4 +1,5 @@
 const db = require("../db");
+const bcrypt = require("bcrypt");
 
 async function createUser(user) {
   user.created_at = new Date();
@@ -9,11 +10,12 @@ async function createUser(user) {
 }
 
 async function loginUser(user_name, password) {
-  const user = await db("users")
-    .select()
-    .where({ user_name, password })
-    .first();
-  return user;
+  const user = await db("users").select().where({ user_name }).first();
+
+  if (user && bcrypt.compareSync(password, user.password)) {
+    return user;
+  }
+  return null;
 }
 
 async function getByUserId(id) {
@@ -32,7 +34,13 @@ async function deleteUser(id) {
 }
 
 async function getAllUsers() {
-  return await db("users").select(["id","name", "user_name", "mail_id", "dob"]);
+  return await db("users").select([
+    "id",
+    "name",
+    "user_name",
+    "mail_id",
+    "dob",
+  ]);
 }
 
 module.exports = {

@@ -2,9 +2,9 @@ const express = require("express");
 const router = express.Router();
 const followsService = require("../services/follows-services");
 const usersService = require("../services/users-services");
-const { isLoggedIn } = require("../middleware/auth");
+const { isLoggedIn, jwtAuth } = require("../middleware/auth");
 
-router.post("/followings", isLoggedIn, async (req, res) => {
+router.post("/followings", jwtAuth, isLoggedIn, async (req, res) => {
   const [id, followId] = [req.user.id, Number(req.body.follow_id)];
   if (!followId) {
     res.status(400).send({ code: 400, message: "follow_id field missing" });
@@ -32,17 +32,17 @@ router.post("/followings", isLoggedIn, async (req, res) => {
   }
 });
 
-router.get("/followings", isLoggedIn, async (req, res) => {
+router.get("/followings", jwtAuth, isLoggedIn, async (req, res) => {
   const followers = await followsService.getFollowings(req.user.id);
   res.status(200).send(followers);
 });
 
-router.get("/followers", isLoggedIn, async (req, res) => {
+router.get("/followers", jwtAuth, isLoggedIn, async (req, res) => {
   const followers = await followsService.getFollowers(req.user.id);
   res.status(200).send(followers);
 });
 
-router.get("/followings/:id", isLoggedIn, async (req, res) => {
+router.get("/followings/:id", jwtAuth, isLoggedIn, async (req, res) => {
   const user = await usersService.getByUserId(req.params.id);
   if (!user) {
     res.status(400).send({ code: 400, message: "Requested user not found" });
@@ -52,7 +52,7 @@ router.get("/followings/:id", isLoggedIn, async (req, res) => {
   res.status(200).send(followers);
 });
 
-router.get("/followers/:id", isLoggedIn, async (req, res) => {
+router.get("/followers/:id", jwtAuth, isLoggedIn, async (req, res) => {
   const user = await usersService.getByUserId(req.params.id);
   if (!user) {
     res.status(400).send({ code: 400, message: "Requested user not found" });
@@ -62,18 +62,20 @@ router.get("/followers/:id", isLoggedIn, async (req, res) => {
   res.status(200).send(followers);
 });
 
-router.get("/connections", isLoggedIn, async (req, res) => {
+router.get("/connections", jwtAuth, isLoggedIn, async (req, res) => {
   const resData = {};
+  resData.followers = {};
+  resData.followings = {};
   resData.user = await usersService.getByUserId(req.user.id);
-  resData.followers = await followsService.getFollowers(req.user.id);
-  resData.user.followersCount = resData.followers.length;
-  resData.followings = await followsService.getFollowings(req.user.id);
-  resData.user.followingsCount = resData.followings.length;
+  resData.followers.users = await followsService.getFollowers(req.user.id);
+  resData.followers.count = resData.followers.users.length;
+  resData.followings.users = await followsService.getFollowings(req.user.id);
+  resData.followings.count = resData.followings.users.length;
 
   res.status(200).send(resData);
 });
 
-router.get("/connections/:id", isLoggedIn, async (req, res) => {
+router.get("/connections/:id", jwtAuth, isLoggedIn, async (req, res) => {
   const resData = {};
   resData.user = await usersService.getByUserId(req.params.id);
   resData.followers = await followsService.getFollowers(req.user.id);
@@ -84,7 +86,7 @@ router.get("/connections/:id", isLoggedIn, async (req, res) => {
   res.status(200).send(resData);
 });
 
-router.delete("/followings/:id", isLoggedIn, async (req, res) => {
+router.delete("/followings/:id", jwtAuth, isLoggedIn, async (req, res) => {
   const deleted = await followsService.deleteFollow(req.user.id, req.params.id);
   if (!deleted) {
     res

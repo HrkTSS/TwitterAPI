@@ -6,7 +6,11 @@ exports.up = function (knex) {
       .notNullable()
       .references("users.id")
       .onDelete("CASCADE");
-    t.integer("connect_id").notNullable();
+    t.integer("connect_id")
+      .unsigned()
+      .references("users.id")
+      .notNullable()
+      .onDelete("CASCADE");
     t.unique(["user_id", "connect_id"]);
     t.timestamps();
   });
