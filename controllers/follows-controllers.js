@@ -4,6 +4,8 @@ const followsService = require("../services/follows-services");
 const usersService = require("../services/users-services");
 const { isLoggedIn, jwtAuth } = require("../middleware/auth");
 
+//checking
+
 router.post("/followings", jwtAuth, isLoggedIn, async (req, res) => {
   const [id, followId] = [req.user.id, Number(req.body.follow_id)];
   if (!followId) {
